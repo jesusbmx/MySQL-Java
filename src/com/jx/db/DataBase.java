@@ -148,6 +148,33 @@ public class DataBase implements Closeable {
 
     return executeUpdate(sql.toString(), bindArgs);
   }
+  
+  public int delete(String tabla, String whereClause, Object... whereArgs) throws SQLException {
+    String sql = "DELETE FROM " + tabla + " WHERE " + whereClause;
+    return executeUpdate(sql, whereArgs);
+  }
+  
+  /**
+   * Ejecuta consultas a la base de datos.
+   *
+   * @param sql query a ejecutar
+   * @param params [opcional] parametros del query
+   *
+   * @return ResultSet con el resultado obtenido
+   *
+   * @throws SQLException
+   */
+  public ResultSet query(String sql, Object... params) throws SQLException {
+    PreparedStatement ps = prepareStatement(sql);
+    try {
+      for (int i = 0; i < params.length; i++) {
+        ps.setObject(i + 1, params[i]);
+      }
+      return ps.executeQuery();
+    } finally {
+      //ps.closeOnCompletion();
+    }
+  }
 
   public int executeInsert(String sql, Object... params) throws SQLException {
     try (PreparedStatement ps = prepareStatement(sql,
@@ -187,28 +214,6 @@ public class DataBase implements Closeable {
    */
   public boolean execute(String sql, Object... params) throws SQLException {
     return executeUpdate(sql, params) == 1;
-  }
-
-  /**
-   * Ejecuta consultas a la base de datos.
-   *
-   * @param sql query a ejecutar
-   * @param params [opcional] parametros del query
-   *
-   * @return ResultSet con el resultado obtenido
-   *
-   * @throws SQLException
-   */
-  public ResultSet query(String sql, Object... params) throws SQLException {
-    PreparedStatement ps = prepareStatement(sql);
-    try {
-      for (int i = 0; i < params.length; i++) {
-        ps.setObject(i + 1, params[i]);
-      }
-      return ps.executeQuery();
-    } finally {
-      //ps.closeOnCompletion();
-    }
   }
 
   @Override

@@ -39,13 +39,19 @@ public class Demo {
     }
   }
   
-  public int upadte(Producto p) throws SQLException {
+  public int update(Producto p) throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
       LinkedHashMap<String, Object> values = new LinkedHashMap<>();
       values.put("codigo", p.getCodigo());
       values.put("nombre", p.getNombre());
       
       return db.update("producto", values, "id = ?", p.getId());
+    }
+  }
+  
+  public int delete(int id) throws SQLException {
+    try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
+      return db.delete("producto", "id = ?", id);
     }
   }
 
@@ -62,8 +68,10 @@ public class Demo {
     
     p.setCodigo("PC-" + System.currentTimeMillis());
     
-    demo.upadte(p);
+    demo.update(p);
     System.out.println("update:" + p);
+    
+    demo.delete(4);
     
     demo.select();
   }
