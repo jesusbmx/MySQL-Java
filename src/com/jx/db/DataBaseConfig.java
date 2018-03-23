@@ -1,8 +1,5 @@
 package com.jx.db;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 /**
  *
  * @author Jesus
@@ -19,9 +16,9 @@ public final class DataBaseConfig {
       mysql = new DataBase();
       // Ejemplo con base de datos MySQL
       mysql.setDriverClassName("com.mysql.jdbc.Driver");
-      mysql.setUrl("jdbc:mysql://localhost:3306/database_name");
-      mysql.setUsername("usuario");
-      mysql.setPassword("password");
+      mysql.setUrl("jdbc:mysql://localhost:3306/punto_venta");
+      mysql.setUsername(/*"usuario"*/"root");
+      mysql.setPassword(/*"password"*/"");
     }
     return mysql;
   }

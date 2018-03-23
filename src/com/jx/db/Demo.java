@@ -1,8 +1,8 @@
 package com.jx.db;
 
+import java.util.LinkedHashMap;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
 
 /**
  *
@@ -16,7 +16,7 @@ public class Demo {
 
       try (ResultSet rs = db.query(sql)) {
         while (rs.next()) {
-          int idProducto = rs.getInt("idProducto");
+          int idProducto = rs.getInt("id");
           String codigo = rs.getString("codigo");
           String nombre = rs.getString("nombre");
 
@@ -27,27 +27,45 @@ public class Demo {
     }
   }
 
-  public void insert() throws SQLException {
+  public int insert(Producto p) throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
       LinkedHashMap<String, Object> values = new LinkedHashMap<>();
-      values.put("codigo", "PC-89273912");
-      values.put("nombre", "PC");
-      int idProducto = db.insert("producto", values);
+      values.put("codigo", p.getCodigo());
+      values.put("nombre", p.getNombre());
+      
+      int id_insertado = db.insert("producto", values);
+      p.setId(id_insertado);
+      return id_insertado;
     }
   }
   
-  public void upadte(int idProducto) throws SQLException {
+  public int upadte(Producto p) throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
       LinkedHashMap<String, Object> values = new LinkedHashMap<>();
-      values.put("codigo", "PC-89273912");
-      values.put("nombre", "PC");
-      db.update("producto", values, 
-              "idProducto = ?", idProducto);
+      values.put("codigo", p.getCodigo());
+      values.put("nombre", p.getNombre());
+      
+      return db.update("producto", values, "id = ?", p.getId());
     }
   }
 
   public static void main(String... args) throws SQLException {
     Demo demo = new Demo();
+    
+    Producto p = new Producto();
+    p.setCodigo("PC-" + System.currentTimeMillis());
+    p.setNombre("PC");
+    
+    demo.insert(p);
+    System.out.println("insert:" + p);
+    
+    
+    p.setCodigo("PC-" + System.currentTimeMillis());
+    
+    demo.upadte(p);
+    System.out.println("update:" + p);
+    
+    demo.select();
   }
 
 }
