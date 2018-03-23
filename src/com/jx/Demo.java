@@ -1,5 +1,8 @@
-package com.jx.db;
+package com.jx;
 
+import com.jx.db.DataBase;
+import com.jx.db.DataBaseConfig;
+import com.jx.model.Producto;
 import java.util.LinkedHashMap;
 import java.sql.ResultSet;
 import java.sql.SQLException;

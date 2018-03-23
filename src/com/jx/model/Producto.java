@@ -1,4 +1,4 @@
-package com.jx.db;
+package com.jx.model;
 
 import java.util.LinkedHashMap;
 
