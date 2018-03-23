@@ -25,23 +25,4 @@ public final class DataBaseConfig {
     }
     return mysql;
   }
-
-  public static void main(String... args) throws SQLException {
-    DataBase db = DataBaseConfig.getDataBaseMySQL();
-
-    String sql = "SELECT * FROM producto";
-
-    try (ResultSet rs = db.query(sql)) {
-      while (rs.next()) {
-        int idProducto = rs.getInt("idProducto");
-        String codigo = rs.getString("codigo");
-        String nombre = rs.getString("nombre");
-        
-        System.out.format("%1$-10s %2$-20s %3$20s\n", 
-                idProducto, codigo, nombre);
-      }
-    } finally {
-      db.close();
-    }
-  }
 }
