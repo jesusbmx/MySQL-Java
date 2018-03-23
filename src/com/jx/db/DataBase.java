@@ -72,6 +72,92 @@ public class DataBase implements Closeable {
     return getConnection().prepareStatement(sql, i);
   }
 
+  public int executeInsert(String sql, Object... params) throws SQLException {
+    try (PreparedStatement ps = prepareStatement(sql,
+            Statement.RETURN_GENERATED_KEYS)) {
+      for (int i = 0; i < params.length; i++) {
+        ps.setObject(i + 1, params[i]);
+      }
+      if (ps.executeUpdate() == 1) {
+        try (ResultSet rs = ps.getGeneratedKeys()) { //obtengo las ultimas llaves generadas
+          if (rs.next()) {
+            return rs.getInt(1);
+          }
+        }
+      }
+      return -1;
+    }
+  }
+
+  public int executeUpdate(String sql, Object... params) throws SQLException {
+    try (PreparedStatement ps = prepareStatement(sql)) {
+      for (int i = 0; i < params.length; i++) {
+        ps.setObject(i + 1, params[i]);
+      }
+      return ps.executeUpdate();
+    }
+  }
+
+  /**
+   * Ejecuta sentencias a la base de datos.
+   *
+   * @param sql sentencia a ejecutar
+   * @param params [opcional] parametros del query
+   *
+   * @return @true resultado obtenido
+   *
+   * @throws SQLException
+   */
+  public boolean execute(String sql, Object... params) throws SQLException {
+    return executeUpdate(sql, params) == 1;
+  }
+  
+  /**
+   * Ejecuta consultas a la base de datos.
+   *
+   * @param sql query a ejecutar
+   * @param params [opcional] parametros del query
+   *
+   * @return ResultSet con el resultado obtenido
+   *
+   * @throws SQLException
+   */
+  public ResultSet query(String sql, Object... params) throws SQLException {
+    PreparedStatement ps = prepareStatement(sql);
+    try {
+      for (int i = 0; i < params.length; i++) {
+        ps.setObject(i + 1, params[i]);
+      }
+      return ps.executeQuery();
+    } finally {
+      //ps.closeOnCompletion();
+    }
+  }
+  
+  /**
+   * Valida si un registro existe.
+   *
+   * @param tabla donde se buscaran las existencias
+   * @param whereClause condicion
+   * @param whereArgs parametros del whereClause
+   *
+   * @return numero de existencia
+   *
+   * @throws SQLException
+   */
+  public int count(String tabla, String whereClause, Object... whereArgs) throws SQLException {
+    String sql = "SELECT COUNT(*) AS COUNT FROM " + tabla;
+    if (whereClause != null && !whereClause.isEmpty()) {
+      sql += " WHERE " + whereClause;
+    }
+    try (ResultSet rs = query(sql, whereArgs)) {
+      if (rs.next()) {
+        return rs.getInt("COUNT");
+      }
+    }
+    return -1;
+  }
+  
   /**
    * Inserta un registro en la base de datos.
    *
@@ -149,71 +235,23 @@ public class DataBase implements Closeable {
     return executeUpdate(sql.toString(), bindArgs);
   }
   
+  /**
+   * Elimina un registro de la base de datos.
+   * 
+   * @param tabla donde se eliminara
+   * @param whereClause condicion
+   * @param whereArgs parametros del whereClause
+   * 
+   * @return
+   * 
+   * @throws SQLException 
+   */
   public int delete(String tabla, String whereClause, Object... whereArgs) throws SQLException {
-    String sql = "DELETE FROM " + tabla + " WHERE " + whereClause;
+    String sql = "DELETE FROM " + tabla;
+    if (whereClause != null && !whereClause.isEmpty()) {
+      sql += " WHERE " + whereClause;
+    }
     return executeUpdate(sql, whereArgs);
-  }
-  
-  /**
-   * Ejecuta consultas a la base de datos.
-   *
-   * @param sql query a ejecutar
-   * @param params [opcional] parametros del query
-   *
-   * @return ResultSet con el resultado obtenido
-   *
-   * @throws SQLException
-   */
-  public ResultSet query(String sql, Object... params) throws SQLException {
-    PreparedStatement ps = prepareStatement(sql);
-    try {
-      for (int i = 0; i < params.length; i++) {
-        ps.setObject(i + 1, params[i]);
-      }
-      return ps.executeQuery();
-    } finally {
-      //ps.closeOnCompletion();
-    }
-  }
-
-  public int executeInsert(String sql, Object... params) throws SQLException {
-    try (PreparedStatement ps = prepareStatement(sql,
-            Statement.RETURN_GENERATED_KEYS)) {
-      for (int i = 0; i < params.length; i++) {
-        ps.setObject(i + 1, params[i]);
-      }
-      if (ps.executeUpdate() == 1) {
-        try (ResultSet rs = ps.getGeneratedKeys()) { //obtengo las ultimas llaves generadas
-          if (rs.next()) {
-            return rs.getInt(1);
-          }
-        }
-      }
-      return -1;
-    }
-  }
-
-  public int executeUpdate(String sql, Object... params) throws SQLException {
-    try (PreparedStatement ps = prepareStatement(sql)) {
-      for (int i = 0; i < params.length; i++) {
-        ps.setObject(i + 1, params[i]);
-      }
-      return ps.executeUpdate();
-    }
-  }
-
-  /**
-   * Ejecuta sentencias a la base de datos.
-   *
-   * @param sql sentencia a ejecutar
-   * @param params [opcional] parametros del query
-   *
-   * @return @true resultado obtenido
-   *
-   * @throws SQLException
-   */
-  public boolean execute(String sql, Object... params) throws SQLException {
-    return executeUpdate(sql, params) == 1;
   }
 
   @Override

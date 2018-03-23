@@ -29,6 +29,12 @@ public class Demo {
       }
     }
   }
+  
+  public int count() throws SQLException {
+    try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
+      return db.count("producto", null);
+    }
+  }
 
   public int insert(Producto p) throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
@@ -77,6 +83,7 @@ public class Demo {
     demo.delete(4);
     
     demo.select();
+    
+    System.out.println("count:" + demo.count());
   }
-
 }
