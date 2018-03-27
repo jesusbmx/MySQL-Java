@@ -164,11 +164,8 @@ public abstract class Dao<Model, Id> {
       return Boolean.FALSE;
     }
     long id = getDataBase().insert(getTableName(), values);
-    if (id != -1) {
-      insertId(m, id);
-      return Boolean.TRUE;
-    }
-    return Boolean.FALSE;
+    insertId(m, id);
+    return id != -1;
   }
   
   /**

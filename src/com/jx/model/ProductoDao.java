@@ -112,7 +112,9 @@ public class ProductoDao extends Dao<Producto, Long> {
    */
   @Override
   protected void insertId(Producto m, long id) {
-    m.setId(id);
+    if (id > 0) {
+      m.setId(id);
+    }
   }
   
   public static void main(String... args) {
