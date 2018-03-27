@@ -134,14 +134,13 @@ public class DataBase implements AutoCloseable {
         try {
           //obtengo las ultimas llaves generadas
           rs = ps.getGeneratedKeys();
-          if (rs.next()) {
-            return rs.getLong(1);
-          }
+          return rs.next() ? rs.getLong(1) : 0;
         } finally {
           close(rs);
         }
+      } else {
+        return -1;
       }
-      return -1;
     } finally {
       close(ps);
     }
