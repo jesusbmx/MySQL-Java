@@ -54,7 +54,7 @@ public class ProductoDao extends Dao<Producto, Long> {
   /**
    * Al guardar un registro en la base de datos.
    * 
-   * @param modelo donde estan los datos a guardar
+   * @param m modelo donde estan los datos a guardar
    * 
    * @return valores del query
    */
@@ -66,11 +66,13 @@ public class ProductoDao extends Dao<Producto, Long> {
     return values;
   }
 
-  /** 
+  /**
+   * @param id del modelo
+   * 
    * @return condicion WHERE para editar, borrar y buscar un registro.
    */
   @Override
-  protected String whereClause() {
+  protected String whereClause(Long id) {
     return "id = ?";
   }
 

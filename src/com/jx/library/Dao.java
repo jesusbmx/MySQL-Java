@@ -24,7 +24,7 @@ public abstract class Dao<Model, Id> {
    * @throws SQLException 
    */
   public Model findById(Id id) throws SQLException {
-    String sql = "SELECT * FROM " + getTableName() + " WHERE " + whereClause();
+    String sql = "SELECT * FROM " + getTableName() + " WHERE " + whereClause(id);
     return findById(sql, id);
   }
   
@@ -106,7 +106,7 @@ public abstract class Dao<Model, Id> {
    * @throws SQLException 
    */
   public long count(Id id) throws SQLException {
-    return getDataBase().count(getTableName(), whereClause(), id);
+    return getDataBase().count(getTableName(), whereClause(id), id);
   }
   
   /**
@@ -136,8 +136,9 @@ public abstract class Dao<Model, Id> {
     if (values.isEmpty()) {
       return Boolean.FALSE;
     }
+    Id id = getId(m);
     return getDataBase().update(getTableName(), values, 
-            whereClause(), getId(m)) == 1;
+            whereClause(id), id) == 1;
   }
  
   /**
@@ -186,7 +187,7 @@ public abstract class Dao<Model, Id> {
    */
   public boolean deleteById(Id id) throws SQLException {
     return getDataBase().delete(getTableName(), 
-            whereClause(), id) == 1;
+            whereClause(id), id) == 1;
   }
   
   /**
@@ -243,10 +244,14 @@ public abstract class Dao<Model, Id> {
    */
   protected abstract Model onRead(ResultSet rs) throws SQLException;
   
-  /** 
+  /**
+   * Condición where.
+   * 
+   * @param id del modelo
+   * 
    * @return condicion WHERE para editar, borrar y buscar un registro.
    */
-  protected abstract String whereClause();
+  protected abstract String whereClause(Id id);
   
   /**
    * Obtiene el id del modelo
