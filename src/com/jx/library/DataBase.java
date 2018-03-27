@@ -114,7 +114,6 @@ public class DataBase implements AutoCloseable {
   /**
    * Ejecuta sentencias insert y obtiene el id del registro insertado.
    * 
-   * @param <T> tipo de id, Long ...
    * @param sql sentencia insert
    * @param params [opcional] parametros de la sentencia
    * 
@@ -122,7 +121,7 @@ public class DataBase implements AutoCloseable {
    * 
    * @throws SQLException 
    */
-  public <T> T executeInsert(String sql, Object... params) throws SQLException {
+  public long executeInsert(String sql, Object... params) throws SQLException {
     PreparedStatement ps = null;
     try {
       ps = prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -136,17 +135,37 @@ public class DataBase implements AutoCloseable {
           //obtengo las ultimas llaves generadas
           rs = ps.getGeneratedKeys();
           if (rs.next()) {
-            return (T) rs.getObject(1);
+            return rs.getLong(1);
           }
         } finally {
           close(rs);
         }
       }
-      return (T) null;
+      return -1;
     } finally {
       close(ps);
     }
   }
+  
+//  public List<Map<String, Object>> resultSetToList(ResultSet rs) throws SQLException {
+//    ResultSetMetaData md = rs.getMetaData();
+//    
+//    int columns = md.getColumnCount();
+//    int rows = 0;
+//    if (rs.last()) rows = rs.getRow();
+//    rs.beforeFirst();
+//    
+//    List<Map<String, Object>> list = new ArrayList<Map<String, Object>>(rows);
+//    while (rs.next()) {
+//      Map<String, Object> row = new HashMap<String, Object>(columns);
+//      for (int i = 1; i <= columns; ++i) {
+//        row.put(md.getColumnName(i), rs.getObject(i));
+//      }
+//      list.add(row);
+//    }
+//
+//    return list;
+//  }
 
   public int executeUpdate(String sql, Object... params) throws SQLException {
     PreparedStatement ps = null;
@@ -191,7 +210,6 @@ public class DataBase implements AutoCloseable {
   /**
    * Inserta un registro en la base de datos.
    *
-   * @param <T> tipo de id, Long ...
    * @param tabla donde se va a insertar el registro
    * @param datos a guardar
    *
@@ -199,7 +217,7 @@ public class DataBase implements AutoCloseable {
    *
    * @throws SQLException
    */
-  public <T> T insert(String tabla, Map<String, Object> datos) throws SQLException {
+  public long insert(String tabla, Map<String, Object> datos) throws SQLException {
     StringBuilder sql = new StringBuilder();
     sql.append("INSERT INTO ");
     sql.append(tabla);

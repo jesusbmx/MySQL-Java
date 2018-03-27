@@ -163,8 +163,8 @@ public abstract class Dao<Model, Id> {
     if (values.isEmpty()) {
       return Boolean.FALSE;
     }
-    Id id = getDataBase().insert(getTableName(), values);
-    if (id != null) {
+    long id = getDataBase().insert(getTableName(), values);
+    if (id != -1) {
       insertId(m, id);
       return Boolean.TRUE;
     }
@@ -285,6 +285,6 @@ public abstract class Dao<Model, Id> {
    * @param m modelo
    * @param id insertado
    */
-  protected abstract void insertId(Model m, Id id);
+  protected abstract void insertId(Model m, long id);
 
 }

@@ -111,7 +111,7 @@ public class ProductoDao extends Dao<Producto, Long> {
    * @param id insertado
    */
   @Override
-  protected void insertId(Producto m, Long id) {
+  protected void insertId(Producto m, long id) {
     m.setId(id);
   }
   
