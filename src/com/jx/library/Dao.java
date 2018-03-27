@@ -9,8 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Clase que administra el origen de la informacion.
+ * 
  * @author jesus
+ * 
+ * @param <Model> modelo o recurso
+ * @param <Id> Tipo de id del modelo
  */
 public abstract class Dao<Model, Id> {
   
@@ -101,12 +105,16 @@ public abstract class Dao<Model, Id> {
   }
   
   /**
+   * Valida si ya existe un registro por medio del id.
+   * 
+   * @param id del modelo
+   * 
    * @return numero de registros
    * 
    * @throws SQLException 
    */
-  public long count(Id id) throws SQLException {
-    return getDataBase().count(getTableName(), whereClause(id), id);
+  public boolean exists(Id id) throws SQLException {
+    return getDataBase().count(getTableName(), whereClause(id), id) > 0;
   }
   
   /**

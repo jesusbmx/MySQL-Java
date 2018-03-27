@@ -12,8 +12,12 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- *
+ * Clase que administra el origen de la informacion.
+ * 
  * @author jesus
+ * 
+ * @param <Producto> modelo o recurso
+ * @param <Long> Tipo de id del modelo
  */
 public class ProductoDao extends Dao<Producto, Long> {
 
