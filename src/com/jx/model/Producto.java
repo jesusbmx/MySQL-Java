@@ -8,7 +8,7 @@ import java.util.LinkedHashMap;
  */
 public class Producto {
   
-  private int id;
+  private long id;
   private String codigo;
   private String nombre;
 
@@ -16,16 +16,16 @@ public class Producto {
     this(0, "", "");
   }
 
-  public Producto(int id, String codigo, String nombre) {
+  public Producto(long id, String codigo, String nombre) {
     this.id = id;
     this.codigo = codigo;
     this.nombre = nombre;
   }
 
-  public int getId() {
+  public long getId() {
     return id;
   }
-  public void setId(int id) {
+  public void setId(long id) {
     this.id = id;
   }
   public String getCodigo() {
@@ -43,7 +43,7 @@ public class Producto {
 
   @Override
   public String toString() {
-    LinkedHashMap<String, Object> values = new LinkedHashMap<>();
+    LinkedHashMap<String, Object> values = new LinkedHashMap<String, Object>();
     values.put("id", id);
     values.put("codigo", codigo);
     values.put("nombre", nombre);

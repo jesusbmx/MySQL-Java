@@ -1,6 +1,5 @@
-package com.jx.db;
+package com.jx.library;
 
-import java.io.Closeable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -8,12 +7,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author Jesus
  */
-public class DataBase implements Closeable {
+public class DataBase implements AutoCloseable {
 
 // Variables
   
@@ -29,6 +29,7 @@ public class DataBase implements Closeable {
   private String url;
   private String username;
   private String password;
+  private boolean debug;
 
   private Connection con;
 
@@ -47,7 +48,7 @@ public class DataBase implements Closeable {
    * @throws SQLException
    */
   public Connection getConnection() throws SQLException {
-    if (con == null || con.isClosed()) {
+    if (isClosed()) {
       try {
         Class.forName(driverClassName);
       } catch (ClassNotFoundException ex) {
@@ -68,48 +69,9 @@ public class DataBase implements Closeable {
    *
    * @throws SQLException
    */
-  public PreparedStatement prepareStatement(String sql, int... i) throws SQLException {
+  public PreparedStatement prepareStatement(String sql, int... i) 
+  throws SQLException {
     return getConnection().prepareStatement(sql, i);
-  }
-
-  public int executeInsert(String sql, Object... params) throws SQLException {
-    try (PreparedStatement ps = prepareStatement(sql,
-            Statement.RETURN_GENERATED_KEYS)) {
-      for (int i = 0; i < params.length; i++) {
-        ps.setObject(i + 1, params[i]);
-      }
-      if (ps.executeUpdate() == 1) {
-        try (ResultSet rs = ps.getGeneratedKeys()) { //obtengo las ultimas llaves generadas
-          if (rs.next()) {
-            return rs.getInt(1);
-          }
-        }
-      }
-      return -1;
-    }
-  }
-
-  public int executeUpdate(String sql, Object... params) throws SQLException {
-    try (PreparedStatement ps = prepareStatement(sql)) {
-      for (int i = 0; i < params.length; i++) {
-        ps.setObject(i + 1, params[i]);
-      }
-      return ps.executeUpdate();
-    }
-  }
-
-  /**
-   * Ejecuta sentencias a la base de datos.
-   *
-   * @param sql sentencia a ejecutar
-   * @param params [opcional] parametros del query
-   *
-   * @return @true resultado obtenido
-   *
-   * @throws SQLException
-   */
-  public boolean execute(String sql, Object... params) throws SQLException {
-    return executeUpdate(sql, params) == 1;
   }
   
   /**
@@ -128,39 +90,108 @@ public class DataBase implements Closeable {
       for (int i = 0; i < params.length; i++) {
         ps.setObject(i + 1, params[i]);
       }
+      if (debug) System.out.println(ps);
       return ps.executeQuery();
     } finally {
       //ps.closeOnCompletion();
     }
   }
+
+  /**
+   * Ejecuta sentencias a la base de datos.
+   *
+   * @param sql sentencia a ejecutar
+   * @param params [opcional] parametros del query
+   *
+   * @return @true resultado obtenido
+   *
+   * @throws SQLException
+   */
+  public boolean execute(String sql, Object... params) throws SQLException {
+    return executeUpdate(sql, params) == 1;
+  }
   
+  /**
+   * Ejecuta sentencias insert y obtiene el id del registro insertado.
+   * 
+   * @param <T> tipo de id, Long ...
+   * @param sql sentencia insert
+   * @param params [opcional] parametros de la sentencia
+   * 
+   * @return el id del registro
+   * 
+   * @throws SQLException 
+   */
+  public <T> T executeInsert(String sql, Object... params) throws SQLException {
+    PreparedStatement ps = null;
+    try {
+      ps = prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+      for (int i = 0; i < params.length; i++) {
+        ps.setObject(i + 1, params[i]);
+      }
+      if (debug) System.out.println(ps);
+      if (ps.executeUpdate() == 1) {
+        ResultSet rs = null;
+        try {
+          //obtengo las ultimas llaves generadas
+          rs = ps.getGeneratedKeys();
+          if (rs.next()) {
+            return (T) rs.getObject(1);
+          }
+        } finally {
+          close(rs);
+        }
+      }
+      return (T) null;
+    } finally {
+      close(ps);
+    }
+  }
+
+  public int executeUpdate(String sql, Object... params) throws SQLException {
+    PreparedStatement ps = null;
+    try {
+      ps = prepareStatement(sql);
+      for (int i = 0; i < params.length; i++) {
+        ps.setObject(i + 1, params[i]);
+      }
+      if (debug) System.out.println(ps);
+      return ps.executeUpdate();
+    } finally {
+      close(ps);
+    }
+  }
+
   /**
    * Valida si un registro existe.
    *
    * @param tabla donde se buscaran las existencias
    * @param whereClause condicion
-   * @param whereArgs parametros del whereClause
+   * @param whereArgs [opcional] parametros del whereClause
    *
    * @return numero de existencia
    *
    * @throws SQLException
    */
-  public int count(String tabla, String whereClause, Object... whereArgs) throws SQLException {
+  public long count(String tabla, String whereClause, Object... whereArgs) 
+  throws SQLException {
     String sql = "SELECT COUNT(*) AS COUNT FROM " + tabla;
     if (whereClause != null && !whereClause.isEmpty()) {
       sql += " WHERE " + whereClause;
     }
-    try (ResultSet rs = query(sql, whereArgs)) {
-      if (rs.next()) {
-        return rs.getInt("COUNT");
-      }
+    ResultSet rs = null;
+    try {
+      rs = query(sql, whereArgs);
+      return rs.next() ? rs.getLong("COUNT") : -1;
+    } finally {
+      close(rs);
     }
-    return -1;
   }
   
   /**
    * Inserta un registro en la base de datos.
    *
+   * @param <T> tipo de id, Long ...
    * @param tabla donde se va a insertar el registro
    * @param datos a guardar
    *
@@ -168,7 +199,7 @@ public class DataBase implements Closeable {
    *
    * @throws SQLException
    */
-  public int insert(String tabla, Map<String, Object> datos) throws SQLException {
+  public <T> T insert(String tabla, Map<String, Object> datos) throws SQLException {
     StringBuilder sql = new StringBuilder();
     sql.append("INSERT INTO ");
     sql.append(tabla);
@@ -199,13 +230,14 @@ public class DataBase implements Closeable {
    * @param tabla donde se va a actualizar el registro
    * @param datos a guardar
    * @param whereClause condicion
-   * @param whereArgs parametros del whereClause
+   * @param whereArgs [opcional] parametros del whereClause
    *
    * @return int id del registro
    *
    * @throws SQLException
    */
-  public int update(String tabla, Map<String, Object> datos, String whereClause, Object... whereArgs) throws SQLException {
+  public int update(String tabla, Map<String, Object> datos, String whereClause, Object... whereArgs)
+  throws SQLException {
     StringBuilder sql = new StringBuilder();
     sql.append("UPDATE ");
     sql.append(tabla);
@@ -240,13 +272,14 @@ public class DataBase implements Closeable {
    * 
    * @param tabla donde se eliminara
    * @param whereClause condicion
-   * @param whereArgs parametros del whereClause
+   * @param whereArgs [opcional] parametros del whereClause
    * 
    * @return
    * 
    * @throws SQLException 
    */
-  public int delete(String tabla, String whereClause, Object... whereArgs) throws SQLException {
+  public int delete(String tabla, String whereClause, Object... whereArgs) 
+  throws SQLException {
     String sql = "DELETE FROM " + tabla;
     if (whereClause != null && !whereClause.isEmpty()) {
       sql += " WHERE " + whereClause;
@@ -254,14 +287,52 @@ public class DataBase implements Closeable {
     return executeUpdate(sql, whereArgs);
   }
 
+  /**
+   * @return @true si la base de datos esta cerrada.
+   *
+   * @throws SQLException
+   */
+  public boolean isClosed() throws SQLException {
+    return con == null || con.isClosed();
+  }
+
   @Override
   public void close() {
+    close(con);
+  }
+  
+  public void close(AutoCloseable ac) {
     try {
-      if (con != null) {
-        con.close();
+      if (ac != null) {
+        ac.close();
       }
-    } catch (SQLException ex) {
+    } catch (Exception e) {
+      // TODO Auto-generated catch block
     }
+  }
+  
+  public boolean log(SQLException e) {
+    String msg = e.getMessage();
+    if (e.getErrorCode() == 1049) {
+      msg = "La base de datos: " + url + " no existe.";
+    } else if (e.getErrorCode() == 1044) {
+      msg = "El usuario: " + username + " no existe.";
+    } else if (e.getErrorCode() == 1045) {
+      msg = "Contraseña incorrecta.";
+    } else if (e.getErrorCode() == 0) {
+      msg = "La conexión con la base de datos no se puede realizar.\n Parece que el servidor de base de datos no esta activo.";
+    }
+    displayError(msg);
+    return Boolean.FALSE;
+  }
+  
+   private void displayError(final String msg) {
+    java.awt.EventQueue.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    });
   }
 
   public String getDriverClassName() {
@@ -294,5 +365,13 @@ public class DataBase implements Closeable {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public boolean isDebug() {
+    return debug;
+  }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
   }
 }

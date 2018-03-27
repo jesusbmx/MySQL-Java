@@ -1,17 +1,17 @@
 package com.jx;
 
-import com.jx.db.DataBase;
-import com.jx.db.DataBaseConfig;
+import com.jx.config.DataBaseConfig;
+import com.jx.library.DataBase;
 import com.jx.model.Producto;
-import java.util.LinkedHashMap;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 
 /**
  *
  * @author Jesus
  */
-public class Demo {
+public class Main {
 
   public void select() throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
@@ -30,19 +30,19 @@ public class Demo {
     }
   }
   
-  public int count() throws SQLException {
+  public long count() throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
       return db.count("producto", null);
     }
   }
 
-  public int insert(Producto p) throws SQLException {
+  public long insert(Producto p) throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
       LinkedHashMap<String, Object> values = new LinkedHashMap<>();
       values.put("codigo", p.getCodigo());
       values.put("nombre", p.getNombre());
       
-      int id_insertado = db.insert("producto", values);
+      long id_insertado = db.insert("producto", values);
       p.setId(id_insertado);
       return id_insertado;
     }
@@ -58,32 +58,35 @@ public class Demo {
     }
   }
   
-  public int delete(int id) throws SQLException {
+  public int delete(long id) throws SQLException {
     try (DataBase db = DataBaseConfig.getDataBaseMySQL()) {
       return db.delete("producto", "id = ?", id);
     }
   }
 
-  public static void main(String... args) throws SQLException {
-    Demo demo = new Demo();
-    
-    Producto p = new Producto();
-    p.setCodigo("PC-" + System.currentTimeMillis());
-    p.setNombre("PC");
-    
-    demo.insert(p);
-    System.out.println("insert:" + p);
-    
-    
-    p.setCodigo("PC-" + System.currentTimeMillis());
-    
-    demo.update(p);
-    System.out.println("update:" + p);
-    
-    demo.delete(4);
-    
-    demo.select();
-    
-    System.out.println("count:" + demo.count());
+  public static void main(String... args)  {
+    Main demo = new Main();
+
+    try {
+      System.out.println("count:" + demo.count());
+      
+      Producto p = new Producto();
+      p.setCodigo("PC-" + System.currentTimeMillis());
+      p.setNombre("PC");
+      demo.insert(p);
+      System.out.println("insert:" + p);
+
+      p.setCodigo("PC-" + System.currentTimeMillis());
+      demo.update(p);
+      System.out.println("update:" + p);
+
+      demo.delete(4);
+
+      demo.select();
+
+      System.out.println("count:" + demo.count());
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
   }
 }
