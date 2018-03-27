@@ -200,7 +200,9 @@ public abstract class Dao<Model, Id> {
    * 
    * @param m modelo 
    * 
-   * @return valores mapeados
+   * @return mapa que contiene los valores de columna iniciales para la fila.
+   *      Las claves deben ser los nombres de las columnas 
+   *      y los valores valores de la columna
    */
   protected Map<String, Object> onUpdate(Model m) {
     return onWrite(m);
@@ -211,7 +213,9 @@ public abstract class Dao<Model, Id> {
    * 
    * @param m modelo 
    * 
-   * @return valores mapeados
+   * @return mapa que contiene los valores de columna iniciales para la fila.
+   *      Las claves deben ser los nombres de las columnas 
+   *      y los valores valores de la columna
    */
   protected Map<String, Object> onInsert(Model m) {
     return onWrite(m);
@@ -222,7 +226,9 @@ public abstract class Dao<Model, Id> {
    * 
    * @param m modelo donde estan los datos a guardar
    * 
-   * @return valores del query
+   * @return mapa que contiene los valores de las columnas para la fila.
+   *      Las claves deben ser los nombres de las columnas 
+   *      y los valores valores de la columna
    */
   protected Map<String, Object> onWrite(Model m) {
     return new HashMap<String, Object>();
@@ -254,7 +260,8 @@ public abstract class Dao<Model, Id> {
    * 
    * @param id del modelo
    * 
-   * @return condicion WHERE para editar, borrar y buscar un registro.
+   * @return cláusula WHERE para aplicar una actualización, eliminación y busqueda de 
+   *    un registro.
    */
   protected abstract String whereClause(Id id);
   

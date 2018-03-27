@@ -117,7 +117,7 @@ public class DataBase implements AutoCloseable {
    * @param sql sentencia insert
    * @param params [opcional] parametros de la sentencia
    * 
-   * @return el id del registro
+   * @return el ID de la fila recién insertada, o -1 si se produjo un error
    * 
    * @throws SQLException 
    */
@@ -209,10 +209,12 @@ public class DataBase implements AutoCloseable {
   /**
    * Inserta un registro en la base de datos.
    *
-   * @param tabla donde se va a insertar el registro
-   * @param datos a guardar
+   * @param tabla donde se va a insertar la fila
+   * @param datos mapa contiene los valores de columna iniciales para la fila.
+   *      Las claves deben ser los nombres de las columnas 
+   *      y los valores valores de la columna
    *
-   * @return int id isertado
+   * @return el ID de la fila recién insertada, o -1 si se produjo un error
    *
    * @throws SQLException
    */
@@ -242,14 +244,19 @@ public class DataBase implements AutoCloseable {
   }
 
   /**
-   * Actualiza un registro en la base de datos.
+   * Actualiza una registro en la base de datos.
    *
-   * @param tabla donde se va a actualizar el registro
-   * @param datos a guardar
-   * @param whereClause condicion
-   * @param whereArgs [opcional] parametros del whereClause
+   * @param tabla donde se va a actualizar la fila.
+   * @param datos mapa contiene los valores de columna iniciales para la fila. 
+   *      Las claves deben ser los nombres de las columnas y los valores valores 
+   *      de la columna.
+   * @param whereClause [opcional] cláusula WHERE para aplicar al actualizar.
+   *      Pasar null actualizará todas las filas.
+   * @param whereArgs [opcional] Puede incluirse en la cláusula WHERE, que
+   *      será reemplazado por los valores de whereArgs. Los valores
+   *      se enlazará como cadenas.
    *
-   * @return int id del registro
+   * @return el número de filas afectadas.
    *
    * @throws SQLException
    */
@@ -288,10 +295,13 @@ public class DataBase implements AutoCloseable {
    * Elimina un registro de la base de datos.
    * 
    * @param tabla donde se eliminara
-   * @param whereClause condicion
-   * @param whereArgs [opcional] parametros del whereClause
+   * @param whereClause [opcional] cláusula WHERE para aplicar la eliminación.
+   *      Pasar null elimina todas las filas.
+   * @param whereArgs [opcional] Puede incluirse en la cláusula WHERE, que
+   *      será reemplazado por los valores de whereArgs. Los valores
+   *      se enlazará como cadenas.
    * 
-   * @return
+   * @return el número de filas afectadas.
    * 
    * @throws SQLException 
    */
@@ -316,6 +326,15 @@ public class DataBase implements AutoCloseable {
   @Override
   public void close() {
     close(con);
+  }
+  
+  @Override
+  protected void finalize() throws Throwable {
+    try {
+      close();
+    } finally {
+      super.finalize();
+    }
   }
   
   public void close(AutoCloseable ac) {
