@@ -18,6 +18,20 @@ import java.util.Map;
  */
 public abstract class Dao<Model, Id> {
   
+  public static final Object[] EMPTY_ARRAY = new Object[0];
+  
+  public static Object[] toArray(Object value) 
+  throws SQLException {
+    if (value == null) {
+      return EMPTY_ARRAY;
+    }
+    if (value instanceof Object[]) {
+      return (Object[]) value;
+    } else {
+      return new Object[] { value };
+    }
+  }
+  
   /**
    * Busca un registro por su identificador
    * 
@@ -29,7 +43,7 @@ public abstract class Dao<Model, Id> {
    */
   public Model findById(Id id) throws SQLException {
     String sql = "SELECT * FROM " + getTableName() + " WHERE " + whereClause(id);
-    return findById(sql, id);
+    return findById(sql, toArray(id));
   }
   
   /**
@@ -49,7 +63,7 @@ public abstract class Dao<Model, Id> {
       rs = db.query(sql, params);
       return rs.next() ? onRead(rs) : null;
     } finally {
-      db.close(rs);
+      DataBase.close(rs);
     }
   }
   
@@ -91,7 +105,7 @@ public abstract class Dao<Model, Id> {
       return list;
       
     } finally {
-      db.close(rs);
+      DataBase.close(rs);
     }
   }
   
@@ -114,7 +128,7 @@ public abstract class Dao<Model, Id> {
    * @throws SQLException 
    */
   public boolean exists(Id id) throws SQLException {
-    return getDataBase().count(getTableName(), whereClause(id), id) > 0;
+    return getDataBase().count(getTableName(), whereClause(id), toArray(id)) > 0;
   }
   
   /**
@@ -146,7 +160,7 @@ public abstract class Dao<Model, Id> {
     }
     Id id = getId(m);
     return getDataBase().update(getTableName(), values, 
-            whereClause(id), id) == 1;
+            whereClause(id), toArray(id)) == 1;
   }
  
   /**
@@ -192,7 +206,7 @@ public abstract class Dao<Model, Id> {
    */
   public boolean deleteById(Id id) throws SQLException {
     return getDataBase().delete(getTableName(), 
-            whereClause(id), id) == 1;
+            whereClause(id), toArray(id)) == 1;
   }
   
   /**
@@ -289,6 +303,8 @@ public abstract class Dao<Model, Id> {
    * @param m modelo
    * @param id insertado
    */
-  protected abstract void insertId(Model m, long id);
+  protected void insertId(Model m, long id) {
+    
+  }
 
 }

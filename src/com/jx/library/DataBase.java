@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
-import javax.swing.JOptionPane;
 
 /**
  *
@@ -337,7 +336,7 @@ public class DataBase implements AutoCloseable {
     }
   }
   
-  public void close(AutoCloseable ac) {
+  public static void close(AutoCloseable ac) {
     try {
       if (ac != null) {
         ac.close();
@@ -347,30 +346,6 @@ public class DataBase implements AutoCloseable {
     }
   }
   
-  public boolean log(SQLException e) {
-    String msg = e.getMessage();
-    if (e.getErrorCode() == 1049) {
-      msg = "La base de datos: " + url + " no existe.";
-    } else if (e.getErrorCode() == 1044) {
-      msg = "El usuario: " + username + " no existe.";
-    } else if (e.getErrorCode() == 1045) {
-      msg = "Contraseña incorrecta.";
-    } else if (e.getErrorCode() == 0) {
-      msg = "La conexión con la base de datos no se puede realizar.\n Parece que el servidor de base de datos no esta activo.";
-    }
-    displayError(msg);
-    return Boolean.FALSE;
-  }
-  
-   private void displayError(final String msg) {
-    java.awt.EventQueue.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-      }
-    });
-  }
-
   public String getDriverClassName() {
     return driverClassName;
   }
